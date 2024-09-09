@@ -4,10 +4,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.nmb.best/api/thread/id/63697744/",
+        "url": "https://api.nmb.best/api/thread/id/62750274/",
         "options": {}
       },
-      "id": "25547d76-b7d0-4db0-89d5-f20e2e6700ec",
+      "id": "29ef6738-910f-4ced-9b75-7d685b0bde1b",
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -20,7 +20,7 @@
       "parameters": {
         "jsCode": "// Loop over input items\nconst output = [];\nfor (const item of $input.all()) {\n  // Check if 'Replies' field exists and is an array\n  if (item.json.Replies && Array.isArray(item.json.Replies)) {\n    const lastReply = item.json.Replies[item.json.Replies.length - 1];\n    item.json.firstLastReply = lastReply;\n    output.push(item);\n    }\n    }\n\nreturn output;\n"
       },
-      "id": "fb61db73-7a5f-4412-91d8-362a6b436160",
+      "id": "2306ecfb-22c0-40fa-91ce-56ed1369b803",
       "name": "Code",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -34,12 +34,13 @@
         "rule": {
           "interval": [
             {
-              "field": "minutes"
+              "field": "minutes",
+              "minutesInterval": 10
             }
           ]
         }
       },
-      "id": "6132cff4-b36c-482f-9636-505e3d64bbc7",
+      "id": "8da98c44-4731-415a-94f0-eee07c73f077",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -50,9 +51,10 @@
     },
     {
       "parameters": {
+        "amount": 10,
         "unit": "minutes"
       },
-      "id": "8237eef6-338d-4b6d-a87b-ec08631bd313",
+      "id": "3292de62-0431-4a1b-9a23-04757017a944",
       "name": "Wait",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -60,13 +62,13 @@
         400,
         640
       ],
-      "webhookId": "432f6076-9a34-4dbe-b8f4-3c709c983a71"
+      "webhookId": "ddb690b5-0c51-4083-8e3d-341f22422431"
     },
     {
       "parameters": {
         "jsCode": "// Loop over input items\nconst output = [];\nfor (const item of $input.all()) {\n  // Check if 'Replies' field exists and is an array\n  if (item.json.Replies && Array.isArray(item.json.Replies)) {\n    const lastReply = item.json.Replies[item.json.Replies.length - 1];\n    item.json.secondLastReply = lastReply;\n    output.push(item);\n    }\n    }\n\nreturn output;\n"
       },
-      "id": "263f41ef-7504-4e4a-ae23-8d4386bf3be5",
+      "id": "e396478e-9b51-46ab-a2a6-d8950b9cf017",
       "name": "Code1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -98,7 +100,7 @@
         },
         "options": {}
       },
-      "id": "a10f415f-63ea-4399-aa74-6f616ccf3a78",
+      "id": "642ca7f9-5e06-4b38-a414-8c31c036225f",
       "name": "If",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.1,
@@ -109,127 +111,11 @@
     },
     {
       "parameters": {
-        "chatId": "",
-        "text": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：<code>>>No.{{ $json.secondLastReply.ReplyNo }}\n{{ $json.secondLastReply.ReplyContent }}</code>\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
-        "additionalFields": {
-          "appendAttribution": false,
-          "disable_notification": false,
-          "disable_web_page_preview": false,
-          "parse_mode": "HTML"
-        }
-      },
-      "id": "a0a64b72-da96-432f-b98a-4dd4cf70491c",
-      "name": "Telegram",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        2320,
-        520
-      ],
-      "credentials": {
-        "telegramApi": {
-          "id": "90qCUOfiyn5RGFyP",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const regex = /No\\.(\\d+)/;\n\nif ($input.item.json.secondLastReply.content.match(regex)) {\n  const match = $input.item.json.secondLastReply.content.match(regex);\n  $input.item.json.secondLastReply.ReplyNo = match ? match[1] : null;\n} else {\n  $input.item.json.secondLastReply.ReplyNo = null;\n}\n\nreturn $input.item;"
-      },
-      "id": "2918fbf6-f396-4a0d-971c-5cb75406971e",
-      "name": "修复回复串号",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1740,
-        440
-      ],
-      "executeOnce": false,
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// 检查是否存在<br />并移除它\nif ($input.item.json.secondLastReply.content.includes('<br />')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<br \\/>/g, '');\n}\n\n// 接下来匹配第一个\\n后的所有内容\nconst regex = /\\n([\\s\\S]*)/;\nconst match = $input.item.json.secondLastReply.content.match(regex);\n\n// 将匹配到的内容（不含<br />）赋值给ReplyContent\n$input.item.json.secondLastReply.ReplyContent = match ? match[1] : null;\n\nreturn $input.item;\n"
-      },
-      "id": "c6f9c2ec-1b83-42c0-bee9-ce9931af3bd4",
-      "name": "修复回复内容",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1900,
-        440
-      ],
-      "executeOnce": false,
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "chatId": "",
-        "text": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：\n<code>{{ $json.secondLastReply.content }}</code>\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
-        "additionalFields": {
-          "appendAttribution": false,
-          "disable_notification": false,
-          "disable_web_page_preview": false,
-          "parse_mode": "HTML"
-        }
-      },
-      "id": "d77f403c-8bf8-42cf-9ae5-8610aa2590b6",
-      "name": "Telegram1",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        2100,
-        740
-      ],
-      "credentials": {
-        "telegramApi": {
-          "id": "90qCUOfiyn5RGFyP",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "b8bd136b-3b2f-4a79-bf33-e451cba53e34",
-              "leftValue": "={{ $json.secondLastReply.content }}",
-              "rightValue": "No.",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "a900aba7-2423-4792-bcfd-9a62eb476153",
-      "name": "If1",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.1,
-      "position": [
-        1480,
-        540
-      ]
-    },
-    {
-      "parameters": {
         "mode": "combine",
         "combineBy": "combineAll",
         "options": {}
       },
-      "id": "558a3753-dd0b-4d83-a604-55306def1302",
+      "id": "a9d92705-4886-4ae5-a547-8b80a695794c",
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -240,143 +126,9 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "94d1c831-69cd-4288-a69f-7be101d4c2e4",
-              "leftValue": "={{ $json.secondLastReply.img }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "3ed4281d-276b-4fc9-9543-5c827cf797ec",
-      "name": "If2",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.1,
-      "position": [
-        2100,
-        440
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "sendMediaGroup",
-        "chatId": "",
-        "media": {
-          "media": [
-            {
-              "media": "=https://image.nmb.best/image/{{ $json.secondLastReply.img }}{{ $json.secondLastReply.ext }}",
-              "additionalFields": {
-                "caption": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：<code>>>No.{{ $json.secondLastReply.ReplyNo }}\n{{ $json.secondLastReply.ReplyContent }}</code>\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
-                "parse_mode": "HTML"
-              }
-            }
-          ]
-        },
-        "additionalFields": {
-          "disable_notification": false
-        }
-      },
-      "id": "0688b2cd-17c6-4f79-a6cc-d25a42431e4a",
-      "name": "Telegram2",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        2320,
-        340
-      ],
-      "credentials": {
-        "telegramApi": {
-          "id": "90qCUOfiyn5RGFyP",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "94d1c831-69cd-4288-a69f-7be101d4c2e4",
-              "leftValue": "={{ $json.secondLastReply.img }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "005480c2-d74e-4420-9f09-b95f3e3a93eb",
-      "name": "If3",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.1,
-      "position": [
-        1900,
-        620
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "sendMediaGroup",
-        "chatId": "",
-        "media": {
-          "media": [
-            {
-              "media": "=https://image.nmb.best/image/{{ $json.secondLastReply.img }}{{ $json.secondLastReply.ext }}",
-              "additionalFields": {
-                "caption": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：\n<code>{{ $json.secondLastReply.content }}</code>\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
-                "parse_mode": "HTML"
-              }
-            }
-          ]
-        },
-        "additionalFields": {
-          "disable_notification": false
-        }
-      },
-      "id": "db15ffca-cb03-4055-98fc-b140e0993eb9",
-      "name": "Telegram3",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        2100,
-        600
-      ],
-      "credentials": {
-        "telegramApi": {
-          "id": "90qCUOfiyn5RGFyP",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "jsCode": "// 遍历所有输入项，并对每个项的 ReplyCount 字段执行计算\nfor (const item of $input.all()) {\n  // 检查 item.json 和 item.json.ReplyCount 是否存在\n  if (item.json && item.json.ReplyCount !== undefined) {\n    // 计算并添加新的字段 adjustedReplyCount\n    item.json.adjustedReplyCount = Math.floor(item.json.ReplyCount / 19) + 1;\n  }\n}\n\n// 返回修改后的输入项数组\nreturn $input.all();\n"
       },
-      "id": "bba81014-4600-431c-9c79-5330609e4a73",
+      "id": "cd6543ca-022c-45aa-830e-6222bb3e888f",
       "name": "Code2",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -388,10 +140,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.nmb.best/api/thread/id/63697744/page/{{ $json.adjustedReplyCount }}",
+        "url": "=https://api.nmb.best/api/thread/id/62750274/page/{{ $json.adjustedReplyCount }}",
         "options": {}
       },
-      "id": "0d733176-e62a-4ca5-9965-33a2f3c4e1b5",
+      "id": "fd737831-0302-4f13-bbc3-3a73aea21e3b",
       "name": "HTTP Request2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -403,10 +155,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.nmb.best/api/thread/id/63697744/page/{{ $json.adjustedReplyCount }}",
+        "url": "=https://api.nmb.best/api/thread/id/62750274/page/{{ $json.adjustedReplyCount }}",
         "options": {}
       },
-      "id": "db235d49-765f-4571-b68d-603699628522",
+      "id": "78e427d0-0cea-4a5a-bc59-b9fb24203c6c",
       "name": "HTTP Request3",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -417,19 +169,112 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// 检查是否存在<br />并移除它\nif ($input.item.json.secondLastReply.content.includes('<br />')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<br \\/>/g, '');\n}\n\nreturn $input.item;\n"
+        "chatId": "",
+        "text": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：\n{{ $json.secondLastReply.content }}\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_notification": false,
+          "disable_web_page_preview": false,
+          "parse_mode": "HTML"
+        }
       },
-      "id": "a92cbcaa-e2ee-443b-8cd4-254a7c44921d",
-      "name": "修复回复内容1",
+      "id": "d4ebbcd9-0082-4342-8913-a2e8621f4735",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        600
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "90qCUOfiyn5RGFyP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 检查是否存在<br />并移除它\nif ($input.item.json.secondLastReply.content.includes('<br />')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<br \\/>/g, '');\n}\n\n// 检查是否存在<small>并移除它\nif ($input.item.json.secondLastReply.content.includes('<small>')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<small>/g, '');\n}\n\n// 检查是否存在</small>并移除它\nif ($input.item.json.secondLastReply.content.includes('</small>')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<\\/small>/g, '');\n}\n\n// 检查是否存在[h]并替换为<tg-spoiler>\nif ($input.item.json.secondLastReply.content.includes('[h]')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/\\[h\\]/g, '<tg-spoiler>');\n}\n\n// 检查是否存在[/h]并替换为</tg-spoiler>\nif ($input.item.json.secondLastReply.content.includes('[/h]')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/\\[\\/h\\]/g, '</tg-spoiler>');\n}\n\n// 检查是否存在<font color=\"#789922\">&gt;&gt;</font>并替换为>>\nif ($input.item.json.secondLastReply.content.includes('<font color=\"#789922\">&gt;&gt;')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<font color=\"#789922\">&gt;&gt;/g, '>>');\n}\n\n// 检查是否存在</font>并移除它\nif ($input.item.json.secondLastReply.content.includes('</font>')) {\n  $input.item.json.secondLastReply.content =$input.item.json.secondLastReply.content.replace(/<\\/font>/g, '');\n}\n\nreturn $input.item;\n"
+      },
+      "id": "c3c4c03f-9ca2-40d1-a1de-9bd02ed78aae",
+      "name": "修复回复内容",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1740,
-        620
+        1460,
+        520
       ],
       "executeOnce": false,
       "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "94d1c831-69cd-4288-a69f-7be101d4c2e4",
+              "leftValue": "={{ $json.secondLastReply.img }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "64065979-37b3-4f4a-8f46-1a02314afeff",
+      "name": "If2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        1620,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMediaGroup",
+        "chatId": "",
+        "media": {
+          "media": [
+            {
+              "media": "=https://image.nmb.best/image/{{ $json.secondLastReply.img }}{{ $json.secondLastReply.ext }}",
+              "additionalFields": {
+                "caption": "=<a href=\"https://www.nmbxd1.com/t/{{ $json.id }}?r={{ $json.secondLastReply.id }}\">No.{{ $json.id }}</a>串有最新回复了\n\n饼干：{{ $json.secondLastReply.user_hash }}  标题：{{ $json.secondLastReply.title }}  昵称：{{ $json.secondLastReply.name }}\n内容：\n{{ $json.secondLastReply.content }}\n\n回复时间：<code>{{ $json.secondLastReply.now }}</code>\n",
+                "parse_mode": "HTML"
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "disable_notification": false
+        }
+      },
+      "id": "1cba22c1-1241-4d6a-93b9-e5a56d6afbfe",
+      "name": "Telegram2",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        440
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "90qCUOfiyn5RGFyP",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -489,52 +334,12 @@
         ]
       ]
     },
-    "修复回复串号": {
-      "main": [
-        [
-          {
-            "node": "修复回复内容",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "修复回复内容": {
-      "main": [
-        [
-          {
-            "node": "If2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "修复回复串号",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "修复回复内容1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "If": {
       "main": [
         [],
         [
           {
-            "node": "If1",
+            "node": "修复回复内容",
             "type": "main",
             "index": 0
           }
@@ -546,42 +351,6 @@
         [
           {
             "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If2": {
-      "main": [
-        [
-          {
-            "node": "Telegram2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Telegram",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If3": {
-      "main": [
-        [
-          {
-            "node": "Telegram3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Telegram1",
             "type": "main",
             "index": 0
           }
@@ -626,11 +395,29 @@
         ]
       ]
     },
-    "修复回复内容1": {
+    "修复回复内容": {
       "main": [
         [
           {
-            "node": "If3",
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
             "type": "main",
             "index": 0
           }
@@ -642,11 +429,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "ec1d127c-aba1-4016-824e-6fb61bba4ccc",
+  "versionId": "1a79a032-1d33-4925-84f7-9235f7c81de1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e7aaaa8c870be3f4e9635b0143bd190be7e08ab73ad622f6064ea6a5a0cc7796"
   },
-  "id": "xBEiO66riVFwa3k5",
+  "id": "b66ZP7VjD1o28rHS",
   "tags": []
 }
