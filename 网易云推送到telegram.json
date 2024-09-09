@@ -1,0 +1,222 @@
+{
+  "name": "网易云推送",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /\\(([^)]+)\\)(?!.*\\()/;\n\nif (regex.test($input.item.json.text1)) {\n  $input.item.json.image =$input.item.json.text1.match(regex)[1];\n} else {\n  $input.item.json.image = null;\n}\n\nreturn $input.item;"
+      },
+      "id": "01238da3-3aa7-458c-a353-f78c2bbca193",
+      "name": "图片",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        840
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /([\\s\\S]*?)(?=\\!?\\[\\])/;\n\nif (regex.test($input.item.json.text1)) {\n  $input.item.json.description =$input.item.json.text1.match(regex)[1];\n} else {\n  $input.item.json.description = null;\n}\n\nreturn $input.item;"
+      },
+      "id": "24580a4d-6ff9-47ed-9136-fa141bfc1318",
+      "name": "描述",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        840
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "chatId": "@mokoomusic",
+        "text": "=*New public like via NeteaseMusic :*\n\n{{ $json.description }}[Media]({{ $json.image }})\n\n歌曲链接：[{{ $json.title }}]({{ $json.link }})   ",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_notification": false,
+          "disable_web_page_preview": false
+        }
+      },
+      "id": "9c5ed182-f042-40ac-8fdf-cbcf9a30a35a",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        840
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "90qCUOfiyn5RGFyP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.content }}",
+        "destinationKey": "text1",
+        "options": {}
+      },
+      "id": "a2386283-8cab-441c-9e3f-3bbc16dd1735",
+      "name": "Markdown1",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        840
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "feedUrl": "https://rss.example.com/163/music/playlist/6855937930"
+      },
+      "id": "5573d13e-c8dc-42c9-b45f-0f83f49c52fc",
+      "name": "RSS Feed Trigger",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://mastodon.social",
+        "text": "=New public like via NeteaseMusic :\n\n歌曲：{{ $json.title }}\n{{ $json.description }}\n歌曲链接：{{ $json.link }} ",
+        "additionalFields": {
+          "attachments": "=imagefile",
+          "possiblySensitive": false
+        }
+      },
+      "id": "6d3e158a-d01c-4d7f-904c-160f59c865b0",
+      "name": "Mastodon",
+      "type": "n8n-nodes-mastodon.mastodon",
+      "typeVersion": 1,
+      "position": [
+        320,
+        1080
+      ],
+      "credentials": {
+        "mastodonOAuth2Api": {
+          "id": "ij3HqJKmOinoxwKC",
+          "name": "Mastodon account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.image }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "imagefile"
+            }
+          }
+        }
+      },
+      "id": "785dc93a-0c71-4f1c-84f5-306e72bfc606",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        1080
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "图片": {
+      "main": [
+        [
+          {
+            "node": "描述",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown1": {
+      "main": [
+        [
+          {
+            "node": "图片",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "描述": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Markdown1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Mastodon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Shanghai",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "6cd331c0-cf13-4fce-a8b2-9776a6350e68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7aaaa8c870be3f4e9635b0143bd190be7e08ab73ad622f6064ea6a5a0cc7796"
+  },
+  "id": "yS7ZeGPVo8zoqSyK",
+  "tags": []
+}

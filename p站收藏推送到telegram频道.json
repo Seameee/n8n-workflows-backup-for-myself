@@ -1,0 +1,327 @@
+{
+  "name": "p站收藏推送",
+  "nodes": [
+    {
+      "parameters": {
+        "html": "={{ $json.content }}",
+        "destinationKey": "data1",
+        "options": {}
+      },
+      "id": "373e6b45-d2ac-4fa5-b0ae-743e6eced569",
+      "name": "Markdown",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        540
+      ],
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /^(.*?)(?=\\n)/;\n\nif ($input.item.json.data1.match(regex)) {\n  const match = $input.item.json.data1.match(regex);\n  $input.item.json.description = match ? match[1] : null;\n} else {\n  $input.item.json.description = null;\n}\n\nreturn $input.item;\n"
+      },
+      "id": "61a83ccb-3089-4513-8467-15f19f3b0ef9",
+      "name": "描述",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        540
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /(?<=\\n\\n)(.*?)(?=\\n)/;\n\nif ($input.item.json.data1.match(regex)) {\n  const match = $input.item.json.data1.match(regex);\n  $input.item.json.artist = match ? match[1] : null;\n} else {\n  $input.item.json.artist = null;\n}\n\nreturn $input.item;\n"
+      },
+      "id": "1948608d-3770-4008-9921-4f7aa2445c03",
+      "name": "作者",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        540
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regexLink = /!\\[\\]\\((https?:\\/\\/[^\\s)]+)\\)/g;\nlet match;\nlet linkNumber = 1;\n\n// 假设 $input.item.json.data1 包含了文本\nif ($input.item.json.hasOwnProperty('data1')) {\n  let text = $input.item.json.data1;\n  \n  while ((match = regexLink.exec(text)) !== null) {\n    // 将匹配到的链接赋值给$input.item.json对象，以link1, link2, ...命名\n    $input.item.json['link' + linkNumber] = match[1];\n    linkNumber++;\n  }\n} else {\n  console.error('data1 is not defined in $input.item.json');\n}\n\nreturn $input.item;\n"
+      },
+      "id": "e821298f-21b2-4925-93f0-f58723655db8",
+      "name": "图片",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        540
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "id": "753b1ba3-90ec-42f2-8284-cfedde4b29ce",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -300,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /\"userId\":\"(\\d+)\"/;\n\nif ($input.item.json.data.match(regex)) {\n  const match = $input.item.json.data.match(regex);\n  $input.item.json.uid = match ? match[1] : null;\n} else {\n  $input.item.json.uid = null;\n}\n\nreturn $input.item;\n"
+      },
+      "id": "3a753513-a594-478f-b821-5ba2b7c61fca",
+      "name": "生成uid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        820
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regexParts = /(.*) - (.*) - (.*)/;\nlet match;\nlet partNumber = 1;\n\n// 假设 $input.item.json.data1 包含了文本\nif ($input.item.json.hasOwnProperty('artist')) {\n  let text = $input.item.json.artist;\n  \n  while ((match = regexParts.exec(text)) !== null) {\n    // 将匹配到的每一部分内容赋值给$input.item.json对象，以part1, part2, ...命名\n    $input.item.json['part' + partNumber] = match[partNumber];\n    partNumber++;\n    \n    // 如果已经匹配到三部分，则跳出循环\n    if (partNumber > 3) break;\n  }\n  \n  // 如果partNumber小于4，说明没有匹配到三部分内容\n  if (partNumber < 4) {\n    console.error('data1 does not contain three parts separated by hyphens in $input.item.json');\n  }\n} else {\n  console.error('data1 is not defined in $input.item.json');\n}\n\nreturn $input.item;\n"
+      },
+      "id": "5a867eb5-a73a-4bbc-82d5-238ce349e6ea",
+      "name": "图片1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        540
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 15,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "feedUrl": "https://rss.example.com/pixiv/user/bookmarks/16846668"
+      },
+      "id": "4ab92eda-b137-40da-99b8-5d3bd624de0c",
+      "name": "RSS Feed Trigger",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1380,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "@mokooanime",
+        "file": "={{ $json.link1 }}",
+        "additionalFields": {
+          "caption": "=[{{ $json.title }}{{ $json.description }}]({{ $json.link }})\n[{{ $json.part1 }}](https://www.pixiv.net/users/{{ $json.uid }})\n{{ $json.part2 }} {{ $json.part3 }}",
+          "disable_notification": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "3430a253-26a9-4140-b97d-f9b059535324",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        280,
+        540
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "90qCUOfiyn5RGFyP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const regex = /\\d+$/;\n\nif ($input.item.json.link.match(regex)) {\n  const match = $input.item.json.link.match(regex);\n  $input.item.json.pid = match ? match[0] : null;\n} else {\n  $input.item.json.pid = null;\n}\n\nreturn $input.item;\n"
+      },
+      "id": "29adcfe7-7930-4aba-82e3-2697ef74c698",
+      "name": "生成pid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        540
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "11e3e9d9-e811-4863-89a8-50da411c5807",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        40,
+        540
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "描述",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "描述": {
+      "main": [
+        [
+          {
+            "node": "作者",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "作者": {
+      "main": [
+        [
+          {
+            "node": "图片",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "图片": {
+      "main": [
+        [
+          {
+            "node": "图片1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "生成uid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "生成uid": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "图片1": {
+      "main": [
+        [
+          {
+            "node": "生成pid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "生成pid": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "LW3e1mZNRsoozRwK",
+    "timezone": "Europe/London"
+  },
+  "versionId": "625bb99b-0111-42ce-a6ba-5b0d6fd36b73",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7aaaa8c870be3f4e9635b0143bd190be7e08ab73ad622f6064ea6a5a0cc7796"
+  },
+  "id": "amTeQZ8h16JHusiG",
+  "tags": []
+}
