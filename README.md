@@ -3,7 +3,7 @@
  自用n8n工作流备份，包括网易云歌单、youtube播放列表、pixiv收藏、x岛指定串最近回复的推送服务
  
 ## 使用方法
-在n8n创建新的工作流后，选择 Import from URL... 输入对应文件的Raw链接，继续下面的配置
+在n8n创建新的工作流后，选择 Import from File... ，选择下载好的json文件，继续下面的配置
 > [!NOTE]
 > 需自行配置好账号凭证，包括Telegram、YouTube、Matstodon等，详见[n8n文档](https://docs.n8n.io/integrations/builtin/credentials/ "n8n文档")
 
