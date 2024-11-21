@@ -23,7 +23,8 @@
     },
     {
       "parameters": {
-        "amount": 595
+        "amount": 10,
+        "unit": "minutes"
       },
       "id": "780b2f66-8661-47ac-8e1d-81602e25497f",
       "name": "Wait",
@@ -211,7 +212,8 @@
           "id": "90qCUOfiyn5RGFyP",
           "name": "Telegram account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -285,21 +287,6 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "combineBy": "combineAll",
-        "options": {}
-      },
-      "id": "583783cf-a81d-413f-8cd3-249111dc0fef",
-      "name": "Merge",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        3160,
-        1060
-      ]
-    },
-    {
-      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -331,6 +318,177 @@
       "position": [
         2960,
         1220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "583783cf-a81d-413f-8cd3-249111dc0fef",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3160,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.thumbnail }}",
+        "options": {}
+      },
+      "id": "47e3cd2f-db6a-497a-9af6-4fb22f095ba8",
+      "name": "HTTP Request2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3300,
+        1480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "options": {
+          "fileName": "image.png",
+          "format": "png"
+        }
+      },
+      "id": "1c620942-2e47-4c59-a484-f898d2645d95",
+      "name": "Edit Image",
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        3540,
+        1480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://seaya.link/short",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "longUrl",
+              "value": "={{ $json.encodedUrl }}"
+            },
+            {
+              "name": "shortUrl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3ccc7b46-657c-43ef-a13c-a2dd5e6485da",
+      "name": "HTTP Request3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4220,
+        1780
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取输入数据\nconst longUrl = $input.item.json.longUrl; // 假设你在前面有一个节点设置了 longUrl\n\n// 定义 Base64 编码的函数\nfunction toBase64(str) {\n    return Buffer.from(str).toString('base64');\n}\n\n// 对 longUrl 进行 Base64 编码\nconst encodedUrl = toBase64(longUrl);\n\n// 返回编码后的结果\nreturn [\n    {\n        json: {\n            longUrl: longUrl,\n            encodedUrl: encodedUrl\n        }\n    }\n];\n"
+      },
+      "id": "e9d0a325-cea6-4aca-8989-249f46d4fcb8",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        1780
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a56056d3-bd2f-4df7-aee2-74b9f12d72e9",
+              "name": "longUrl",
+              "value": "=https://www.youtube.com/watch?v={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "02d775f7-1f63-4fda-83cf-fde5037a2cea",
+      "name": "Edit Fields3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3760,
+        1780
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "0aac5686-e63e-4c6b-aa08-35d6a7b9a1ef",
+      "name": "Merge2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        4360,
+        1500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.nmbxd1.com/Home/Forum/doReplyThread.html",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Cookie\": \"userhash=\"\n}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "resto",
+              "value": "64308586"
+            },
+            {
+              "name": "name",
+              "value": "= "
+            },
+            {
+              "name": "content",
+              "value": "=New public like via YouTube :\n\nTitle: {{ $json.title }}\nChannel: {{ $json.channel.name }}\nUrl: {{ $json.ShortUrl }}\n\nViewCount: {{ $json.viewCount }}  PubDate: {{ $json.uploadDate }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "78e85a92-af41-48ca-b950-a8c17f9091a6",
+      "name": "nmbxd",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4540,
+        1500
       ]
     }
   ],
@@ -473,22 +631,6 @@
         ]
       ]
     },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "Telegram",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Edit Fields2": {
       "main": [
         [
@@ -516,13 +658,105 @@
           }
         ]
       ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "nmbxd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "09c56572-a484-42e0-84c5-e908651b2859",
+  "versionId": "d7b4653f-7778-4dd3-9abb-56317d235196",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e7aaaa8c870be3f4e9635b0143bd190be7e08ab73ad622f6064ea6a5a0cc7796"

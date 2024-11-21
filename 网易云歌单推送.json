@@ -1,5 +1,5 @@
 {
-  "name": "网易云推送",
+  "name": "网易云歌单推送",
   "nodes": [
     {
       "parameters": {
@@ -57,7 +57,8 @@
           "id": "90qCUOfiyn5RGFyP",
           "name": "Telegram account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -85,7 +86,7 @@
             }
           ]
         },
-        "feedUrl": "https://rss.example.com/163/music/playlist/6855937930"
+        "feedUrl": "https://feed.seaya.link/163/music/playlist/6855937930"
       },
       "id": "5573d13e-c8dc-42c9-b45f-0f83f49c52fc",
       "name": "RSS Feed Trigger",
@@ -140,6 +141,84 @@
         100,
         1080
       ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.nmbxd1.com/Home/Forum/doReplyThread.html",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Cookie\": \"userhash=\"\n}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "resto",
+              "value": "64308586"
+            },
+            {
+              "name": "name",
+              "value": "= "
+            },
+            {
+              "name": "content",
+              "value": "=New public like via NeteaseMusic :\n\n歌曲：{{ $json.title }}\n{{ $json.description }}\n歌曲链接：{{ $json.link }} "
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "60b09f73-e8f2-4ee4-8d03-e5379d2784d8",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.image }}",
+        "options": {}
+      },
+      "id": "0c4d4b7b-8c47-4639-8690-984a4e829913",
+      "name": "HTTP Request2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "options": {
+          "fileName": "image.png",
+          "format": "png"
+        }
+      },
+      "id": "54ea5413-0e5a-447a-8046-808436c26ad2",
+      "name": "Edit Image",
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        340,
+        1280
+      ]
     }
   ],
   "pinData": {},
@@ -178,6 +257,11 @@
             "node": "HTTP Request",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -203,6 +287,28 @@
           }
         ]
       ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -212,7 +318,7 @@
     "saveManualExecutions": true,
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "6cd331c0-cf13-4fce-a8b2-9776a6350e68",
+  "versionId": "373ce6e7-fcf9-42cc-a6c5-2a0a9b8d9d8f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "e7aaaa8c870be3f4e9635b0143bd190be7e08ab73ad622f6064ea6a5a0cc7796"
